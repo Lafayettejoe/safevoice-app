@@ -3,6 +3,9 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
+const inputClass =
+    "min-h-11 w-full rounded-lg border border-outline bg-surface-container-lowest px-3 text-sm text-on-surface placeholder:text-on-surface-variant focus:border-tertiary focus:outline-2 focus:outline-tertiary";
+
 export function LoginForm() {
     const router = useRouter();
     const [error, setError] = useState<string | null>(null);
@@ -42,23 +45,24 @@ export function LoginForm() {
 
     return (
         <form onSubmit={handleSubmit} className="flex flex-col gap-4" noValidate>
-            <div className="flex flex-col gap-1">
-                <label htmlFor="email" className="font-medium">
-                    Email
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor="email" className="text-xs font-medium">
+                    Your email<span aria-hidden="true" className="text-error"> *</span>
                 </label>
                 <input
                     id="email"
                     name="email"
                     type="email"
                     autoComplete="username"
+                    placeholder="you@organisation.org"
                     required
-                    className="min-h-11 rounded-md border border-outline bg-surface-variant px-3 text-on-surface-variant focus:border-tertiary focus:outline-2 focus:outline-tertiary"
+                    className={inputClass}
                 />
             </div>
 
-            <div className="flex flex-col gap-1">
-                <label htmlFor="password" className="font-medium">
-                    Password
+            <div className="flex flex-col gap-1.5">
+                <label htmlFor="password" className="text-xs font-medium">
+                    Password<span aria-hidden="true" className="text-error"> *</span>
                 </label>
                 <input
                     id="password"
@@ -66,14 +70,14 @@ export function LoginForm() {
                     type="password"
                     autoComplete="current-password"
                     required
-                    className="min-h-11 rounded-md border border-outline bg-surface-variant px-3 text-on-surface-variant focus:border-tertiary focus:outline-2 focus:outline-tertiary"
+                    className={inputClass}
                 />
             </div>
 
             {error && (
                 <p
                     role="alert"
-                    className="rounded-md bg-error-container px-3 py-2 text-on-error-container"
+                    className="rounded-lg bg-error-container px-3 py-2 text-sm text-on-error-container"
                 >
                     {error}
                 </p>
@@ -82,10 +86,14 @@ export function LoginForm() {
             <button
                 type="submit"
                 disabled={submitting}
-                className="min-h-11 rounded-md bg-secondary px-4 font-semibold text-on-secondary disabled:opacity-60"
+                className="min-h-11 w-full rounded-lg bg-secondary px-4 text-sm font-semibold text-on-secondary disabled:opacity-60"
             >
                 {submitting ? "Logging in..." : "Log in"}
             </button>
+
+            <p className="text-center text-xs text-on-surface-variant">
+                Forgot your password? Ask your camp administrator to reset it.
+            </p>
         </form>
     );
 }
