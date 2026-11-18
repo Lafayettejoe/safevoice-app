@@ -1,0 +1,366 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Camp: one IDP camp deployment of SafeVoice.
+model Camp {
+  id                 String                  @id @default(cuid())
+  name               String
+  region             String
+  country            String                  @default("Nigeria")
+  defaultLanguage    Language                @default(HAUSA)
+  panicRedirectUrl   String                  @default("https://weather.com")
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  reports            Report[]
+  referralPartners   ReferralPartner[]
+  users              User[]
+  escalationContacts EscalationContact[]
+  consentRecords     ConsentRecord[]
+  sessionTokens      AnonymousSessionToken[]
+
+  @@index([region])
+}
+
+// User: case workers and camp administrators. Survivors have no accounts.
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  passwordHash    String
+  role            UserRole
+  displayName     String
+  isActive        Boolean        @default(true)
+  campId          String
+  camp            Camp           @relation(fields: [campId], references: [id])
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  lastLoginAt     DateTime?
+  assignedReports Report[]       @relation("AssignedCaseWorker")
+  riskOverrides   RiskOverride[]
+  auditLogs       AuditLog[]
+
+  @@index([campId])
+  @@index([email])
+}
+
+// ConsentRecord: written at the moment the consent screen is confirmed.
+model ConsentRecord {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  campId       String
+  camp         Camp     @relation(fields: [campId], references: [id])
+  language     Language
+  confirmedAt  DateTime @default(now())
+  ipHash       String?
+
+  @@index([sessionToken])
+  @@index([confirmedAt])
+}
+
+// Report: core entity for a single GBV disclosure.
+// A raw migration adds a GIN index on incidentTypes (done in the next step).
+model Report {
+  id                     String               @id @default(cuid())
+  referenceCode          String               @unique
+  campId                 String
+  camp                   Camp                 @relation(fields: [campId], references: [id])
+  submittedAt            DateTime             @default(now())
+  submittedViaProxy      Boolean              @default(false)
+  proxyConsentRecorded   Boolean              @default(false)
+  sessionToken           String
+  survivorAgeBand        AgeBand
+  isMinor                Boolean              @default(false)
+  incidentTypes          IncidentType[]
+  timingOfDay            TimingOfDay?
+  timingRecency          TimingRecency?
+  language               Language
+  audioFileKey           String?
+  audioDurationSeconds   Int?
+  transcriptionStatus    TranscriptionStatus  @default(PENDING)
+  transcriptText         String?
+  aiRiskLevel            RiskLevel?
+  aiRiskRationale        String?
+  aiClassificationStatus AiClassStatus        @default(PENDING)
+  humanRiskLevel         RiskLevel?
+  status                 ReportStatus         @default(NEW)
+  assignedToId           String?
+  assignedTo             User?                @relation("AssignedCaseWorker", fields: [assignedToId], references: [id])
+  assignedAt             DateTime?
+  closedAt               DateTime?
+  closureReason          String?
+  childProtectionFlag    Boolean              @default(false)
+  proxyNotes             String?
+  submittedOffline       Boolean              @default(false)
+  audioSyncComplete      Boolean              @default(false)
+  scheduledDeletionAt    DateTime
+  deletionHeld           Boolean              @default(false)
+  survivorIdentityId     String?
+  referrals              Referral[]
+  riskOverrides          RiskOverride[]
+  statusUpdates          ReportStatusUpdate[]
+  escalations            EscalationLog[]
+
+  @@unique([sessionToken])
+  @@index([campId, status])
+  @@index([campId, aiRiskLevel])
+  @@index([referenceCode])
+  @@index([childProtectionFlag])
+  @@index([scheduledDeletionAt])
+  @@index([submittedAt])
+}
+
+// SurvivorIdentity: optional, application-layer encrypted identity.
+model SurvivorIdentity {
+  id              String   @id @default(cuid())
+  reportId        String   @unique
+  identityPayload String
+  createdAt       DateTime @default(now())
+
+  @@index([reportId])
+}
+
+// SurvivorContact: opt-in follow-up channel chosen by the survivor.
+model SurvivorContact {
+  id                        String         @id @default(cuid())
+  reportId                  String         @unique
+  channel                   ContactChannel
+  contactPayload            String
+  safetyWarningAcknowledged Boolean        @default(false)
+  createdAt                 DateTime       @default(now())
+
+  @@index([reportId])
+}
+
+// ReportStatusUpdate: pre-written updates visible to survivors via reference code.
+model ReportStatusUpdate {
+  id        String           @id @default(cuid())
+  reportId  String
+  report    Report           @relation(fields: [reportId], references: [id])
+  status    PreWrittenStatus
+  createdAt DateTime         @default(now())
+
+  @@index([reportId])
+}
+
+// ReferralPartner: service providers configured per camp by the administrator.
+model ReferralPartner {
+  id             String      @id @default(cuid())
+  campId         String
+  camp           Camp        @relation(fields: [campId], references: [id])
+  name           String
+  serviceType    ServiceType
+  contactMethod  String
+  operatingHours String?
+  isActive       Boolean     @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  referrals      Referral[]
+
+  @@index([campId, isActive])
+}
+
+// Referral: records when a case worker assigns a report to a referral partner.
+model Referral {
+  id                String          @id @default(cuid())
+  reportId          String
+  report            Report          @relation(fields: [reportId], references: [id])
+  referralPartnerId String
+  referralPartner   ReferralPartner @relation(fields: [referralPartnerId], references: [id])
+  assignedAt        DateTime        @default(now())
+  status            ReferralStatus  @default(PENDING)
+  outcome           String?
+  completedAt       DateTime?
+
+  @@index([reportId])
+  @@index([referralPartnerId])
+  @@index([status])
+}
+
+// EscalationContact: external contacts configured per camp.
+model EscalationContact {
+  id            String                @id @default(cuid())
+  campId        String
+  camp          Camp                  @relation(fields: [campId], references: [id])
+  contactType   EscalationContactType
+  name          String
+  contactMethod String
+  isActive      Boolean               @default(true)
+  createdAt     DateTime              @default(now())
+
+  @@index([campId, contactType])
+}
+
+// EscalationLog: records every automated escalation triggered by the system.
+model EscalationLog {
+  id               String                @id @default(cuid())
+  reportId         String
+  report           Report                @relation(fields: [reportId], references: [id])
+  escalationLevel  Int
+  triggeredAt      DateTime              @default(now())
+  contactType      EscalationContactType
+  notificationSent Boolean               @default(false)
+
+  @@index([reportId])
+  @@index([triggeredAt])
+}
+
+// RiskOverride: logs every time a case worker changes the AI risk tag.
+model RiskOverride {
+  id           String     @id @default(cuid())
+  reportId     String
+  report       Report     @relation(fields: [reportId], references: [id])
+  caseWorkerId String
+  caseWorker   User       @relation(fields: [caseWorkerId], references: [id])
+  originalRisk RiskLevel?
+  overriddenTo RiskLevel
+  reason       String
+  createdAt    DateTime   @default(now())
+
+  @@index([reportId])
+  @@index([caseWorkerId])
+  @@index([createdAt])
+}
+
+// AnonymousSessionToken: authorises a single report submission without an account.
+model AnonymousSessionToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  campId    String
+  camp      Camp      @relation(fields: [campId], references: [id])
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// AuditLog: append-only record of all authenticated user mutations.
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+enum Language {
+  ENGLISH
+  HAUSA
+  YORUBA
+  IGBO
+  PIDGIN
+}
+
+enum UserRole {
+  CASE_WORKER
+  CAMP_ADMIN
+}
+
+enum AgeBand {
+  UNDER_15
+  AGE_15_TO_17
+  AGE_18_TO_24
+  AGE_25_TO_34
+  AGE_35_PLUS
+  PREFER_NOT_TO_SAY
+}
+
+enum IncidentType {
+  SEXUAL_VIOLENCE
+  PHYSICAL_VIOLENCE
+  FORCED_MARRIAGE
+  ECONOMIC_ABUSE
+  EMOTIONAL_ABUSE
+  OTHER
+}
+
+enum TimingOfDay {
+  DAY
+  NIGHT
+  UNSURE
+}
+
+enum TimingRecency {
+  RECENT
+  SOME_TIME_AGO
+  LONG_TIME_AGO
+}
+
+enum TranscriptionStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+  NOT_APPLICABLE
+}
+
+enum AiClassStatus {
+  PENDING
+  COMPLETE
+  FAILED
+  UNCLASSIFIED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum ReportStatus {
+  NEW
+  IN_PROGRESS
+  REFERRED
+  CLOSED
+}
+
+enum ReferralStatus {
+  PENDING
+  CONTACTED
+  COMPLETED
+  FAILED
+}
+
+enum ServiceType {
+  MEDICAL
+  PSYCHOSOCIAL
+  LEGAL
+  SHELTER
+  CHILD_PROTECTION
+  LIVELIHOOD
+  OTHER
+}
+
+enum ContactChannel {
+  SMS
+  IN_APP
+}
+
+enum PreWrittenStatus {
+  CASE_RECEIVED
+  CASE_ASSIGNED
+  REFERRAL_MADE
+  REFERRAL_FAILED
+  CASE_CLOSED
+}
+
+enum EscalationContactType {
+  CAMP_ADMIN
+  UNFPA_GBV_AOR
+  NAPTIP_STATE
+  POLICE_GBV_UNIT
+}
