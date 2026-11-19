@@ -76,22 +76,22 @@ export function StartScreen() {
     return (
         <div
             lang={language}
-            className="rounded-xl bg-surface-container-lowest p-6 shadow-lg"
+            className="rounded-xl bg-surface-container-lowest p-8 shadow-lg"
         >
             <BrandMark />
 
-            <div className="mt-4 text-center">
-                <h1 className="text-2xl font-bold">SafeVoice</h1>
-                <p className="mt-2 min-h-6 text-on-surface-variant">
+            <div className="mt-4 mb-6 text-center">
+                <h1 className="text-lg font-bold">SafeVoice</h1>
+                <p className="mt-1 min-h-10 text-sm text-on-surface-variant">
                     {textReady ? t("landing.subtitle") : ""}
                 </p>
             </div>
 
-            <h2 className="mt-6 min-h-6 text-center font-medium">
+            <h2 className="min-h-5 text-sm font-medium">
                 {textReady ? t("language.prompt") : ""}
             </h2>
 
-            <div role="group" aria-label="Language" className="mt-3 flex flex-col gap-3">
+            <div role="group" aria-label="Language" className="mt-1.5 flex flex-col gap-3">
                 {enabledLanguages().map((code) => {
                     const selected = language === code;
                     return (
@@ -101,8 +101,8 @@ export function StartScreen() {
                             lang={code}
                             aria-pressed={selected}
                             onClick={() => setLanguage(code)}
-                            className={`flex min-h-14 items-center justify-between rounded-lg border-2 px-4 text-lg font-semibold ${selected
-                                ? "border-secondary bg-primary text-on-primary-container"
+                            className={`flex min-h-11 items-center justify-between rounded-lg border px-3 text-base font-medium ${selected
+                                ? "border-secondary bg-primary text-on-primary-container ring-1 ring-secondary"
                                 : "border-outline bg-surface-container-lowest text-on-surface"
                                 }`}
                         >
@@ -110,8 +110,8 @@ export function StartScreen() {
                             {selected && (
                                 <svg
                                     aria-hidden="true"
-                                    width="22"
-                                    height="22"
+                                    width="18"
+                                    height="18"
                                     viewBox="0 0 24 24"
                                     fill="none"
                                     stroke="currentColor"
@@ -130,7 +130,7 @@ export function StartScreen() {
             {tokenStatus === "error" && (
                 <div
                     role="alert"
-                    className="mt-4 rounded-lg bg-error-container px-3 py-2 text-on-error-container"
+                    className="mt-4 rounded-lg bg-error-container px-3 py-2 text-sm text-on-error-container"
                 >
                     <p>{textReady ? t("error.generic") : "Something went wrong."}</p>
                     <button
@@ -147,7 +147,7 @@ export function StartScreen() {
                 type="button"
                 disabled={!canContinue}
                 onClick={() => router.push("/consent")}
-                className="mt-6 min-h-14 w-full rounded-lg bg-secondary px-4 text-lg font-semibold text-on-secondary disabled:opacity-50"
+                className="mt-6 min-h-11 w-full rounded-lg bg-secondary px-4 text-base font-semibold text-on-secondary disabled:opacity-60"
             >
                 {textReady ? t("landing.start") : "..."}
             </button>
