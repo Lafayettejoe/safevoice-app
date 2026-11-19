@@ -1,6 +1,8 @@
 import "server-only";
 import { randomBytes } from "node:crypto";
 import { db } from "./db";
+import { env } from "./env";
+import { languageFromDb, type LanguageCode } from "./languages";
 
 // Anonymous session tokens let a survivor submit ONE report without an account.
 // Rules: issued on page load, valid for 30 minutes, usable once, and only
@@ -24,6 +26,31 @@ export async function generateSessionToken(
     });
 
     return { token, expiresAt };
+}
+
+export type IssueTokenResult =
+    | { ok: true; token: string; expiresAt: Date; defaultLanguage: LanguageCode }
+    | { ok: false; reason: "CAMP_NOT_CONFIGURED" };
+
+// Called on every page load of the SafeVoice site (FR-03A). Gives the visitor
+// a fresh token for this site's camp, plus the camp's default language.
+export async function issueSessionToken(): Promise<IssueTokenResult> {
+    if (!env.DEFAULT_CAMP_ID) return { ok: false, reason: "CAMP_NOT_CONFIGURED" };
+
+    const camp = await db.camp.findUnique({
+        where: { id: env.DEFAULT_CAMP_ID },
+        select: { id: true, defaultLanguage: true },
+    });
+    if (!camp) return { ok: false, reason: "CAMP_NOT_CONFIGURED" };
+
+    const { token, expiresAt } = await generateSessionToken(camp.id);
+
+    return {
+        ok: true,
+        token,
+        expiresAt,
+        defaultLanguage: languageFromDb(camp.defaultLanguage),
+    };
 }
 
 export async function validateSessionToken(token: string): Promise<TokenCheck> {

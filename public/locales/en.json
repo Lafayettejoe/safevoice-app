@@ -1,0 +1,18 @@
+{
+    "landing.title": "SafeVoice",
+    "landing.subtitle": "A safe, private way to tell someone what happened.",
+    "language.prompt": "Choose your language",
+    "landing.start": "Continue",
+    "consent.title": "Before you start",
+    "consent.point1": "You can tell us what happened by speaking.",
+    "consent.point2": "Nothing is saved until you agree.",
+    "consent.point3": "We will not ask for your name.",
+    "consent.point4": "You can stop at any time.",
+    "consent.point5": "A computer program turns your voice into text and helps judge how urgent your report is. A trained case worker always reads or listens to your report.",
+    "consent.point6": "Your report is kept private and is deleted after 24 months.",
+    "consent.confirm": "I agree",
+    "consent.decline": "No, take me out",
+    "common.loading": "Loading...",
+    "error.generic": "Something went wrong. Please try again.",
+    "error.session": "Your session has ended. Please start again."
+}

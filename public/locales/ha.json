@@ -1,0 +1,18 @@
+{
+    "landing.title": "SafeVoice",
+    "landing.subtitle": "Hanya mai aminci kuma ta sirri don faɗa wa wani abin da ya faru.",
+    "language.prompt": "Zaɓi harshe",
+    "landing.start": "Ci gaba",
+    "consent.title": "Kafin a fara",
+    "consent.point1": "Za ku iya faɗa mana abin da ya faru ta hanyar magana.",
+    "consent.point2": "Ba a adana komai sai kun amince.",
+    "consent.point3": "Ba za mu tambaye ku sunanku ba.",
+    "consent.point4": "Kuna iya tsayawa a kowane lokaci.",
+    "consent.point5": "Wata kwamfuta za ta mayar da muryarku rubutu kuma ta taimaka wajen gane yadda rahotonku yake da gaggawa. Ma'aikacin da aka horar kullum zai karanta ko ya saurari rahotonku.",
+    "consent.point6": "Za a kiyaye sirrin rahotonku, kuma a share shi bayan watanni 24.",
+    "consent.confirm": "Na yarda",
+    "consent.decline": "A'a, fitar da ni",
+    "common.loading": "Ana lodawa...",
+    "error.generic": "Wani abu ya faru. Da fatan a sake gwadawa.",
+    "error.session": "Zaman ku ya ƙare. Da fatan a sake farawa."
+}

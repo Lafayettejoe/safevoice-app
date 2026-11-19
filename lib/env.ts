@@ -20,6 +20,8 @@ const envSchema = z.object({
 
     // Needed later (Task 13: deletion and escalation jobs). Optional for now.
     CRON_SECRET: z.string().min(16).optional(),
+    // Which camp this SafeVoice site serves.
+    DEFAULT_CAMP_ID: z.string().min(1).optional(),
 
     // Needed later (Task 6: audio storage on Supabase S3). Optional for now.
     S3_ENDPOINT: z.string().optional(),
