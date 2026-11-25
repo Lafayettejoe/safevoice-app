@@ -5,6 +5,7 @@ import { isEnabledLanguage, type LanguageCode } from "./languages";
 
 const TOKEN_KEY = "sv_token";
 const LANGUAGE_KEY = "sv_lang";
+const PANIC_URL_KEY = "sv_panic_url";
 
 function getStorage(): Storage | null {
     try {
@@ -40,9 +41,19 @@ export function storeSessionToken(token: string): void {
     safeSet(TOKEN_KEY, token);
 }
 
-// Used by the panic exit and by "withdraw": leaves nothing behind.
+// The camp's decoy page for the panic exit.
+export function readPanicUrl(): string | null {
+    return getStorage()?.getItem(PANIC_URL_KEY) ?? null;
+}
+
+export function storePanicUrl(url: string): void {
+    safeSet(PANIC_URL_KEY, url);
+}
+
+// Used by "withdraw": leaves nothing behind.
 export function clearSurvivorStorage(): void {
     const storage = getStorage();
     storage?.removeItem(TOKEN_KEY);
     storage?.removeItem(LANGUAGE_KEY);
+    storage?.removeItem(PANIC_URL_KEY);
 }

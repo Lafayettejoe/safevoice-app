@@ -17,6 +17,7 @@ export async function POST() {
             token: result.token,
             expiresAt: result.expiresAt.toISOString(),
             defaultLanguage: result.defaultLanguage,
+            panicRedirectUrl: result.panicRedirectUrl,
         },
         201,
     );

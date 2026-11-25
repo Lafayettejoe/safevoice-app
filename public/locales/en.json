@@ -14,6 +14,7 @@
     "consent.decline": "No, take me out",
     "common.loading": "Loading...",
     "common.retry": "Try again",
+    "panic.exit": "Exit",
     "error.generic": "Something went wrong. Please try again.",
     "error.session": "Your session has ended. Please start again."
 }

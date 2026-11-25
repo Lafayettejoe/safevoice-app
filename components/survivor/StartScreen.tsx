@@ -10,12 +10,22 @@ import {
 } from "../../lib/languages";
 import {
     readStoredLanguage,
+    storePanicUrl,
     storeSessionToken,
 } from "../../lib/survivor-storage";
 import { BrandMark } from "../shared/BrandMark";
 import { useLanguage } from "./LanguageProvider";
+import { SurvivorCard } from "./SurvivorCard";
 
 type TokenStatus = "loading" | "ready" | "error";
+
+type TokenResponse = {
+    data?: {
+        token?: string;
+        defaultLanguage?: string;
+        panicRedirectUrl?: string;
+    };
+};
 
 export function StartScreen() {
     const router = useRouter();
@@ -32,15 +42,16 @@ export function StartScreen() {
                 const response = await fetch("/api/session-token", { method: "POST" });
                 if (!response.ok) throw new Error("Token request failed");
 
-                const result: {
-                    data?: { token?: string; defaultLanguage?: string };
-                } = await response.json();
+                const result: TokenResponse = await response.json();
 
                 const token = result.data?.token;
                 if (!token) throw new Error("No token returned");
                 if (cancelled) return;
 
                 storeSessionToken(token);
+
+                const panicRedirectUrl = result.data?.panicRedirectUrl;
+                if (panicRedirectUrl) storePanicUrl(panicRedirectUrl);
 
                 // Use the camp's default language until the survivor picks one.
                 const defaultLanguage = result.data?.defaultLanguage;
@@ -74,10 +85,7 @@ export function StartScreen() {
     const canContinue = textReady && tokenStatus === "ready";
 
     return (
-        <div
-            lang={language}
-            className="rounded-xl bg-surface-container-lowest p-8 shadow-lg"
-        >
+        <SurvivorCard lang={language}>
             <BrandMark />
 
             <div className="mt-4 mb-6 text-center">
@@ -143,14 +151,16 @@ export function StartScreen() {
                 </div>
             )}
 
+            {/* replace, not push: the flow keeps a single SafeVoice entry in the
+          browser history, so the panic exit leaves nothing to go back to. */}
             <button
                 type="button"
                 disabled={!canContinue}
-                onClick={() => router.push("/consent")}
+                onClick={() => router.replace("/consent")}
                 className="mt-6 min-h-11 w-full rounded-lg bg-secondary px-4 text-base font-semibold text-on-secondary disabled:opacity-60"
             >
                 {textReady ? t("landing.start") : "..."}
             </button>
-        </div>
+        </SurvivorCard>
     );
 }

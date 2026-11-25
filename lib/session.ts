@@ -29,17 +29,24 @@ export async function generateSessionToken(
 }
 
 export type IssueTokenResult =
-    | { ok: true; token: string; expiresAt: Date; defaultLanguage: LanguageCode }
+    | {
+        ok: true;
+        token: string;
+        expiresAt: Date;
+        defaultLanguage: LanguageCode;
+        panicRedirectUrl: string;
+    }
     | { ok: false; reason: "CAMP_NOT_CONFIGURED" };
 
 // Called on every page load of the SafeVoice site (FR-03A). Gives the visitor
-// a fresh token for this site's camp, plus the camp's default language.
+// a fresh token for this site's camp, plus the camp's default language and
+// its panic exit decoy page.
 export async function issueSessionToken(): Promise<IssueTokenResult> {
     if (!env.DEFAULT_CAMP_ID) return { ok: false, reason: "CAMP_NOT_CONFIGURED" };
 
     const camp = await db.camp.findUnique({
         where: { id: env.DEFAULT_CAMP_ID },
-        select: { id: true, defaultLanguage: true },
+        select: { id: true, defaultLanguage: true, panicRedirectUrl: true },
     });
     if (!camp) return { ok: false, reason: "CAMP_NOT_CONFIGURED" };
 
@@ -50,6 +57,7 @@ export async function issueSessionToken(): Promise<IssueTokenResult> {
         token,
         expiresAt,
         defaultLanguage: languageFromDb(camp.defaultLanguage),
+        panicRedirectUrl: camp.panicRedirectUrl,
     };
 }
 

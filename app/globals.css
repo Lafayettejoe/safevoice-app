@@ -40,7 +40,8 @@
 }
 
 /* Lets components use classes like bg-secondary and text-on-secondary
-   while the real values stay in the tokens above. */
+   while the real values stay in the tokens above. Every token above that a
+   component uses must be listed here, or its class silently does nothing. */
 @theme inline {
   --color-primary: var(--primary-color);
   --color-on-primary: var(--on-primary-color);
@@ -66,6 +67,11 @@
   --color-on-surface-variant: var(--on-surface-variant-color);
   --color-outline: var(--outline-color);
   --color-outline-variant: var(--outline-variant-color);
+  --color-inverse-surface: var(--inverse-surface-color);
+  --color-inverse-on-surface: var(--inverse-on-surface-color);
+  --color-inverse-primary: var(--inverse-primary-color);
+  --color-surface-dim: var(--surface-dim-color);
+  --color-surface-bright: var(--surface-bright-color);
   --color-surface-container-lowest: var(--surface-container-lowest-color);
   --color-surface-container-low: var(--surface-container-low-color);
   --color-surface-container: var(--surface-container-color);

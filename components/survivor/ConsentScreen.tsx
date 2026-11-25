@@ -10,6 +10,7 @@ import {
 } from "../../lib/survivor-storage";
 import { BrandMark } from "../shared/BrandMark";
 import { useLanguage } from "./LanguageProvider";
+import { SurvivorCard } from "./SurvivorCard";
 
 const POINT_KEYS = [
     "consent.point1",
@@ -24,8 +25,6 @@ type SubmitState =
     | { kind: "idle" }
     | { kind: "saving" }
     | { kind: "error"; sessionEnded: boolean };
-
-const cardClass = "rounded-xl bg-surface-container-lowest p-8 shadow-lg";
 
 export function ConsentScreen() {
     const router = useRouter();
@@ -57,7 +56,8 @@ export function ConsentScreen() {
             });
 
             if (response.ok) {
-                router.push("/report");
+                // replace, not push: keeps a single SafeVoice entry in the history.
+                router.replace("/report");
                 return;
             }
 
@@ -78,21 +78,21 @@ export function ConsentScreen() {
 
     if (status === "error") {
         return (
-            <div className={cardClass}>
+            <SurvivorCard>
                 <p>Could not load this page. Please reload.</p>
-            </div>
+            </SurvivorCard>
         );
     }
 
     if (status !== "ready") {
-        return <div className={cardClass} aria-busy="true" />;
+        return <SurvivorCard busy />;
     }
 
     const saving = state.kind === "saving";
     const sessionEnded = state.kind === "error" && state.sessionEnded;
 
     return (
-        <div lang={language} className={cardClass}>
+        <SurvivorCard lang={language}>
             <BrandMark />
             <h1 className="mt-4 mb-6 text-center text-lg font-bold">
                 {t("consent.title")}
@@ -155,6 +155,6 @@ export function ConsentScreen() {
             >
                 {t("consent.decline")}
             </button>
-        </div>
+        </SurvivorCard>
     );
 }
