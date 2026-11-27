@@ -29,7 +29,7 @@ export function LoginForm() {
             });
 
             if (response.ok) {
-                router.push("/inbox");
+                router.push("/dashboard");
                 router.refresh();
                 return;
             }
