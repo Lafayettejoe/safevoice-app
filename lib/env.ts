@@ -23,18 +23,18 @@ const envSchema = z.object({
     // Which camp this SafeVoice site serves.
     DEFAULT_CAMP_ID: z.string().min(1).optional(),
 
-    // Needed later (Task 6: audio storage on Supabase S3). Optional for now.
+    // Audio storage on Supabase S3.
     S3_ENDPOINT: z.string().optional(),
     S3_REGION: z.string().optional(),
     S3_BUCKET: z.string().optional(),
     S3_ACCESS_KEY_ID: z.string().optional(),
     S3_SECRET_ACCESS_KEY: z.string().optional(),
 
-    // Needed later (Task 7: AI pipeline on Groq). Keys optional for now.
-    AI_BASE_URL: z.string().default("https://api.groq.com/openai/v1"),
+    // AI pipeline on Cloudflare Workers AI.
+    CLOUDFLARE_ACCOUNT_ID: z.string().optional(),
     AI_API_KEY: z.string().optional(),
-    AI_TRANSCRIBE_MODEL: z.string().default("whisper-large-v3"),
-    AI_CLASSIFY_MODEL: z.string().default("openai/gpt-oss-20b"),
+    AI_TRANSCRIBE_MODEL: z.string().default("@cf/openai/whisper-large-v3-turbo"),
+    AI_CLASSIFY_MODEL: z.string().default("@cf/openai/gpt-oss-20b"),
 });
 
 const parsed = envSchema.safeParse(process.env);

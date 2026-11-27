@@ -1,3 +1,5 @@
+import { after } from "next/server";
+import { processReport } from "../../../lib/ai/process-report";
 import { fail, ok } from "../../../lib/api-response";
 import { writeAuditLog } from "../../../lib/audit";
 import { languageToDb } from "../../../lib/languages";
@@ -11,8 +13,8 @@ const MAX_AUDIO_BYTES = 3 * 1024 * 1024;
 const MAX_REQUEST_BYTES = MAX_AUDIO_BYTES + 100 * 1024;
 const ALLOWED_AUDIO_TYPES = ["audio/webm", "audio/ogg", "audio/mp4"];
 
-// Saving can be slow when the database is waking up.
-export const maxDuration = 30;
+// Includes the transcription and risk check that run after the response.
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
     const token = request.headers.get("x-session-token");
@@ -121,6 +123,17 @@ export async function POST(request: Request) {
     } catch (error) {
         console.error("Audit write failed:", error instanceof Error ? error.name : "unknown");
     }
+
+    // Transcription and risk check run after the survivor has her code.
+    // processReport records its own failures, so nothing can reach her.
+    const reportId = result.reportId;
+    after(async () => {
+        try {
+            await processReport(reportId);
+        } catch (error) {
+            console.error("AI processing failed:", error instanceof Error ? error.name : "unknown");
+        }
+    });
 
     return ok({ referenceCode: result.referenceCode }, 201);
 }
