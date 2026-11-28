@@ -44,7 +44,7 @@ export async function proxy(request: NextRequest) {
                 { status: 403 },
             );
         }
-        return NextResponse.redirect(new URL("/inbox", request.url));
+        return NextResponse.redirect(new URL("/dashboard", request.url));
     }
 
     return NextResponse.next();
@@ -55,6 +55,7 @@ export async function proxy(request: NextRequest) {
 // (a case worker opening one report), so the survivor page "/report" stays open.
 export const config = {
     matcher: [
+        "/dashboard/:path*",
         "/inbox/:path*",
         "/search/:path*",
         "/report/:path+",
